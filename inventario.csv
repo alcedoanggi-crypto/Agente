@@ -1,0 +1,8 @@
+codigo,tipo,marca,modelo,anio,kilometraje,transmision,combustible,color,precio,estado,notas
+V001,SUV,Toyota,RAV4,2020,45000,Automática,Gasolina,Blanco,23900,Disponible,Un solo dueño. Mantenimientos en la agencia.
+V002,SUV,Hyundai,Tucson,2021,38000,Automática,Gasolina,Gris,22500,Disponible,Cámara de reversa y pantalla táctil.
+V003,Camioneta,Toyota,Hilux 4x4,2019,72000,Manual,Diésel,Plata,31000,Disponible,Doble cabina. Lista para trabajo pesado.
+V004,Sedán,Nissan,Sentra,2022,21000,Automática,Gasolina,Negro,17800,Disponible,Muy económico en combustible.
+V005,Sedán,Kia,Rio,2020,54000,Manual,Gasolina,Rojo,12500,Disponible,Ideal como primer carro.
+V006,SUV,Mazda,CX-5,2022,30000,Automática,Gasolina,Azul,26900,Reservado,Apartado por un cliente hasta el viernes.
+V007,Camioneta,Ford,Ranger,2021,48000,Automática,Diésel,Blanco,29500,Disponible,Con barra antivuelco y cubre platón.
