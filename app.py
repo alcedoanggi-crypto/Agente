@@ -229,6 +229,32 @@ def diagnostico():
     return "<br>".join(r), 200
 
 
+@app.get("/privacidad")
+def privacidad():
+    """Política de privacidad pública (Meta la pide para publicar la app)."""
+    negocio = os.getenv("NOMBRE_NEGOCIO", "AutoVentas")
+    return f"""<!doctype html><html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Política de privacidad - {negocio}</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:720px;margin:40px auto;padding:0 20px;line-height:1.6;color:#222}}</style>
+</head><body>
+<h1>Política de privacidad de {negocio}</h1>
+<p>Esta política explica cómo {negocio} trata la información de las personas que nos escriben por WhatsApp.</p>
+<h2>Qué datos recibimos</h2>
+<p>Cuando nos escribe por WhatsApp recibimos su número de teléfono, su nombre de perfil y el contenido de sus mensajes, incluidas las fotos o archivos que decida enviarnos.</p>
+<h2>Para qué los usamos</h2>
+<p>Usamos estos datos solo para responder sus consultas sobre vehículos, precios, financiamiento, pruebas de manejo y la compra o recepción de vehículos, y para que un asesor de {negocio} pueda contactarlo.</p>
+<h2>Asistente automático</h2>
+<p>Las respuestas iniciales las da un asistente virtual con inteligencia artificial (Google Gemini). Sus mensajes se envían a ese servicio únicamente para generar la respuesta.</p>
+<h2>Con quién los compartimos</h2>
+<p>No vendemos ni compartimos sus datos con terceros con fines publicitarios. Solo intervienen los proveedores necesarios para prestar el servicio: Meta (WhatsApp), Google (Gemini) y nuestro proveedor de servidores.</p>
+<h2>Cuánto tiempo los guardamos</h2>
+<p>El asistente conserva el historial de la conversación de forma temporal para dar continuidad a la atención, y se borra cuando el servicio se reinicia.</p>
+<h2>Sus derechos</h2>
+<p>Puede pedir en cualquier momento que borremos sus datos o dejar de recibir mensajes. Escríbanos por este mismo número de WhatsApp indicando su solicitud.</p>
+</body></html>""", 200
+
+
 @app.get("/")
 def inicio():
     return "El agente de ventas está funcionando ✅", 200
