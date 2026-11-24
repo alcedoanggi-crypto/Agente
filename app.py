@@ -89,6 +89,8 @@ def enviar_whatsapp(telefono: str, texto: str) -> None:
         )
         if r.status_code >= 300:
             log.error("Error enviando a %s: %s %s", telefono, r.status_code, r.text)
+        else:
+            log.info("Mensaje enviado a %s", telefono)
     except requests.RequestException as e:
         log.error("Error de red enviando a %s: %s", telefono, e)
 
@@ -158,6 +160,7 @@ def verificar_webhook():
 @app.post("/webhook")
 def recibir_mensaje():
     if not firma_valida(request.get_data(), request.headers.get("X-Hub-Signature-256", "")):
+        log.warning("Mensaje rechazado: la firma no coincide. Revisa META_APP_SECRET (o déjalo vacío).")
         abort(403)
 
     datos = request.get_json(silent=True) or {}
@@ -168,13 +171,62 @@ def recibir_mensaje():
                 c.get("wa_id"): c.get("profile", {}).get("name", "")
                 for c in valor.get("contacts", [])
             }
+            for estado in valor.get("statuses", []):
+                if estado.get("errors"):
+                    log.error("WhatsApp no pudo entregar a %s: %s", estado.get("recipient_id"), estado.get("errors"))
             for mensaje in valor.get("messages", []):
+                log.info("Mensaje recibido de %s (tipo %s)", mensaje.get("from"), mensaje.get("type"))
                 if ya_visto(mensaje.get("id", "")):
                     continue
                 nombre = contactos.get(mensaje.get("from"), "")
                 threading.Thread(target=atender, args=(mensaje, nombre), daemon=True).start()
 
     return "ok", 200
+
+
+@app.get("/diagnostico")
+def diagnostico():
+    """Revisa la configuración. Ábrelo así: /diagnostico?clave=TU_WEBHOOK_VERIFY_TOKEN"""
+    if not WEBHOOK_VERIFY_TOKEN or request.args.get("clave") != WEBHOOK_VERIFY_TOKEN:
+        abort(403)
+    r = []
+
+    def item(ok, texto):
+        r.append(("✅ " if ok else "❌ ") + texto)
+
+    item(bool(WHATSAPP_TOKEN), "WHATSAPP_TOKEN cargado")
+    id_ok = WHATSAPP_PHONE_NUMBER_ID.isdigit()
+    item(id_ok, "WHATSAPP_PHONE_NUMBER_ID es un número" + ("" if id_ok else
+         f" (ahora dice '{WHATSAPP_PHONE_NUMBER_ID}': copia el 'Identificador del número de teléfono' de Meta)"))
+    tel_ok = TELEFONO_ASESOR.isdigit() and TELEFONO_ASESOR != "584121234567"
+    item(tel_ok, "TELEFONO_ASESOR configurado" + ("" if tel_ok else " (sigue el número de ejemplo o está vacío)"))
+    item(True, "META_APP_SECRET " + ("configurado: debe ser la 'Clave secreta de la app' exacta" if META_APP_SECRET else "vacío (válido)"))
+
+    if WHATSAPP_TOKEN and id_ok:
+        try:
+            g = requests.get(
+                f"https://graph.facebook.com/{GRAPH_API_VERSION}/{WHATSAPP_PHONE_NUMBER_ID}",
+                params={"fields": "display_phone_number,verified_name"},
+                headers={"Authorization": f"Bearer {WHATSAPP_TOKEN}"},
+                timeout=15,
+            )
+            if g.ok:
+                d = g.json()
+                item(True, f"Meta acepta el token. Número del agente: {d.get('display_phone_number')} ({d.get('verified_name')})")
+            else:
+                msg = g.json().get("error", {}).get("message", g.text)
+                item(False, f"Meta rechazó el token o el ID: {msg}")
+        except requests.RequestException as e:
+            item(False, f"No se pudo conectar con Meta: {e}")
+
+    try:
+        agente.cargar_inventario()
+        agente._gemini().models.generate_content(model=agente.GEMINI_MODELO, contents="Responde solo: ok")
+        item(True, f"Gemini responde con el modelo {agente.GEMINI_MODELO}")
+    except Exception as e:
+        item(False, f"Gemini falló: {e}")
+
+    return "<br>".join(r), 200
 
 
 @app.get("/")
