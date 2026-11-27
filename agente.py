@@ -105,7 +105,7 @@ def _llamar_modelo(historial: list, instrucciones: str) -> object:
     modelos = [m for m in [GEMINI_MODELO, GEMINI_MODELO_RESPALDO] if m]
     config = types.GenerateContentConfig(
         system_instruction=instrucciones,
-        temperature=0.4,
+        temperature=0.7,
         max_output_tokens=800,
     )
     ultimo_error = None
